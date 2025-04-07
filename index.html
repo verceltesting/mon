@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Voting DApp</title>
+
+
+
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+        background: #f5f7fa;
+        color: #333;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2em;
+        margin-bottom: 1em;
+    }
+
+    .candidate-card {
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        padding: 15px;
+        margin: 10px 0;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .candidate-card img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin-right: 15px;
+        object-fit: cover;
+    }
+
+    .candidate-info {
+        display: flex;
+        align-items: center;
+        flex: 1;
+    }
+
+    button {
+        padding: 10px 16px;
+        font-size: 1em;
+        background: #4a90e2;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: #357bd8;
+    }
+
+    #leaderboard {
+        margin-top: 30px;
+        text-align: left;
+    }
+
+    @media (max-width: 480px) {
+        .candidate-info {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .candidate-card {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .candidate-card img {
+            margin-bottom: 10px;
+        }
+    }
+</style>
+
+
+
+
+</head>
+<body>
+    <h1>Vote for a Candidate</h1>
+    <p>You can vote a total of 5 times.</p>
+    
+
+
+
+
+
+
+<div class="candidate-card">
+    <div class="candidate-info">
+        <img src="1.avif" alt="House of Molandak">
+        <span>House of Molandak</span>
+    </div>
+    
+    <button onclick="vote('Molandak')" data-vote>Vote</button>
+</div>
+
+<div class="candidate-card">
+    <div class="candidate-info">
+        <img src="2.avif" alt="House of Moyaki">
+        <span>House of Moyaki</span>
+    </div>
+   
+    <button onclick="vote('Moyaki')" data-vote>Vote</button>
+</div>
+
+<div class="candidate-card">
+    <div class="candidate-info">
+        <img src="3.avif" alt="House of Chog">
+        <span>House of Chog</span>
+    </div>
+  
+    <button onclick="vote('Chog')" data-vote>Vote</button>
+</div>
+
+
+
+
+
+
+
+
+    <br><br>
+    <button onclick="showUserVotes()">Show My Votes</button>
+    <p id="status"></p>
+
+    <button onclick="showLeaderboard()">Show Leaderboard</button>
+    <div id="leaderboard"></div>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script>
+        const contractAddress = '0xbba4f6c25fd7b5e5258db4974afd34cdca6db7c6';
+    const abi = [
+    {
+    "inputs": [{"internalType": "string[]","name": "_candidates","type": "string[]"}],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+    },
+    {
+    "inputs": [{"internalType": "string","name": "_candidate","type": "string"}],
+    "name": "getVotes",
+    "outputs": [{"internalType": "uint256","name": "","type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+    },
+    {
+    "inputs": [],
+    "name": "getCandidates",
+    "outputs": [{"internalType": "string[]","name": "","type": "string[]"}],
+    "stateMutability": "view",
+    "type": "function"
+    },
+    {
+    "inputs": [{"internalType": "address","name": "user","type": "address"}],
+    "name": "getUserVoteCount",
+    "outputs": [{"internalType": "uint8","name": "","type": "uint8"}],
+    "stateMutability": "view",
+    "type": "function"
+    },
+    {
+    "inputs": [
+    {"internalType": "address","name": "user","type": "address"},
+    {"internalType": "string","name": "_candidate","type": "string"}
+    ],
+    "name": "getUserVotesForCandidate",
+    "outputs": [{"internalType": "uint8","name": "","type": "uint8"}],
+    "stateMutability": "view",
+    "type": "function"
+    },
+    {
+    "inputs": [{"internalType": "string","name": "_candidate","type": "string"}],
+    "name": "vote",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+    },
+    {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{"internalType": "address","name": "","type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+    }
+    ];
+
+
+
+
+
+
+
+        const web3 = new Web3(window.ethereum);
+        const contract = new web3.eth.Contract(abi, contractAddress);
+
+       
+
+          async function vote(candidate) {
+    await ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await web3.eth.getAccounts();
+    const user = accounts[0];
+
+    try {
+        await contract.methods.vote(candidate).send({ from: user });
+        document.getElementById('status').innerText = `Voted for ${candidate}`;
+        checkVoteLimit(); // 👈 check again after vote
+    } catch (err) {
+        document.getElementById('status').innerText = err.message;
+    }
+}
+
+
+
+async function checkVoteLimit() {
+await ethereum.request({ method: 'eth_requestAccounts' });
+const accounts = await web3.eth.getAccounts();
+const user = accounts[0];
+
+const totalVotes = await contract.methods.getUserVoteCount(user).call();
+
+if (parseInt(totalVotes) >= 5) {
+const buttons = document.querySelectorAll("button[data-vote]");
+buttons.forEach(btn => {
+btn.disabled = true;
+btn.innerText = "Limit Reached";
+btn.style.background = "#ccc";
+btn.style.cursor = "not-allowed";
+});
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+        async function showUserVotes() {
+            await ethereum.request({ method: 'eth_requestAccounts' });
+            const accounts = await web3.eth.getAccounts();
+            const user = accounts[0];
+            let out = `Vote Summary for ${user}:\n`;
+
+            const candidates = ["Molandak", "Moyaki", "Chog"];
+            const count = await contract.methods.getUserVoteCount(user).call();
+            out += `Total Votes Used: ${count}/5\n`;
+
+            for (let i = 0; i < candidates.length; i++) {
+                const cvotes = await contract.methods.getUserVotesForCandidate(user, candidates[i]).call();
+                out += `${candidates[i]}: ${cvotes} votes\n`;
+            }
+            document.getElementById("status").innerText = out;
+        }
+
+
+
+        async function showLeaderboard() {
+            const candidates = ["Molandak", "Moyaki", "Chog"];
+            let leaderboard = [];
+
+            for (let i = 0; i < candidates.length; i++) {
+                const votes = await contract.methods.getVotes(candidates[i]).call();
+                leaderboard.push({ name: candidates[i], votes: parseInt(votes) });
+            }
+
+            leaderboard.sort((a, b) => b.votes - a.votes);
+
+            let html = "<h2>Leaderboard</h2><ul>";
+            leaderboard.forEach(c => {
+                html += `<li>${c.name}: ${c.votes} vote(s)</li>`;
+            });
+            html += "</ul>";
+
+            document.getElementById("leaderboard").innerHTML = html;
+        }
+
+
+
+window.addEventListener('load', checkVoteLimit);
+
+    </script>
+
+    
+</body>
+</html>
