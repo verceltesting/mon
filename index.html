@@ -89,6 +89,77 @@
 
 </head>
 <body>
+
+
+
+
+async function addAndSwitchToMonadTestnet() {
+  if (!window.ethereum) {
+    alert("Please install MetaMask or a Web3 wallet!");
+    return;
+  }
+
+  const MONAD_TESTNET = {
+    chainId: "0x13a", // 314 in hex (Monad Testnet)
+    chainName: "Monad Testnet",
+    nativeCurrency: {
+      name: "Monad",
+      symbol: "MON",
+      decimals: 18,
+    },
+    rpcUrls: ["https://testnet-rpc.monad.xyz"],
+    blockExplorerUrls: ["https://testnet.monadexplorer.com/"],
+  };
+
+  try {
+    // Check current chain
+    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+
+    // If already on Monad Testnet, do nothing
+    if (currentChainId === '0x13a') {
+      console.log("Already on Monad Testnet");
+      return;
+    }
+
+    // Try switching to Monad Testnet
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x13a' }], // Monad Testnet chainId
+      });
+      console.log("Switched to Monad Testnet");
+    } catch (switchError) {
+      // If Monad Testnet is not added, add it
+      if (switchError.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [MONAD_TESTNET],
+          });
+          console.log("Monad Testnet network added!");
+        } catch (addError) {
+          console.error("Failed to add Monad Testnet network:", addError);
+          alert("Failed to add Monad Testnet. Please add it manually in your wallet.");
+        }
+      } else {
+        console.error("Failed to switch to Monad Testnet:", switchError);
+        alert("Failed to switch to Monad Testnet. Please try manually.");
+      }
+    }
+  } catch (error) {
+    console.error("General error:", error);
+    alert("An error occurred. Check console for details.");
+  }
+}
+
+// Run the function
+addAndSwitchToMonadTestnet();
+
+    
+
+
+
+    
     <h1>Vote for a Candidate</h1>
     <p>You can vote a total of 5 times.</p>
     
