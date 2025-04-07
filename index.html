@@ -100,7 +100,7 @@ async function addAndSwitchToMonadTestnet() {
   }
 
   const MONAD_TESTNET = {
-    chainId: "0x13a", // 314 in hex (Monad Testnet)
+    chainId: "10143", // 314 in hex (Monad Testnet)
     chainName: "Monad Testnet",
     nativeCurrency: {
       name: "Monad",
@@ -116,7 +116,7 @@ async function addAndSwitchToMonadTestnet() {
     const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
 
     // If already on Monad Testnet, do nothing
-    if (currentChainId === '0x13a') {
+    if (currentChainId === '10143') {
       console.log("Already on Monad Testnet");
       return;
     }
@@ -125,7 +125,7 @@ async function addAndSwitchToMonadTestnet() {
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x13a' }], // Monad Testnet chainId
+        params: [{ chainId: '10143' }], // Monad Testnet chainId
       });
       console.log("Switched to Monad Testnet");
     } catch (switchError) {
